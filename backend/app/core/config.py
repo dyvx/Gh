@@ -1,0 +1,69 @@
+"""应用配置 - Pydantic Settings 从环境变量加载"""
+
+from pydantic_settings import BaseSettings
+
+
+class Settings(BaseSettings):
+    # DeepSeek API
+    deepseek_api_key: str = ""
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-v4-pro"
+    deepseek_max_token: int = 2000
+    deepseek_temperature: float = 0.9
+
+    # 绘画 API (豆包 Seedream)
+    painting_enabled: bool = True
+    painting_api_key: str = ""
+    painting_base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
+    painting_model: str = "doubao-seedream-4-5-251128"
+    painting_size: str = "2048x2048"
+
+    # 数据库
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/virtual_gf"
+    redis_url: str = "redis://localhost:6379/0"
+
+    # 托管数据库集成（Vercel + Neon / Supabase）会注入这些变量，作为 DATABASE_URL 的备选
+    postgres_url: str = ""
+    # 首次启动时自动建表（Serverless 上没有单独的迁移步骤）
+    auto_create_tables: bool = True
+
+    # 可选：首次启动时自动创建管理员账号（两项都填才生效）
+    admin_email: str = ""
+    admin_password: str = ""
+    admin_username: str = "admin"
+
+    # JWT
+    secret_key: str = "dev-secret-change-in-production"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 15
+    refresh_token_expire_days: int = 7
+
+    # App
+    app_port: int = 8000
+    debug: bool = False
+    cors_origins: str = "http://localhost:5173"
+
+    # 视觉识图 (豆包 Seed-2.0 Pro)
+    vision_enabled: bool = True
+    vision_api_key: str = ""
+    vision_base_url: str = "https://ark.cn-beijing.volces.com/api/v3"
+    vision_model: str = "doubao-seed-2-0-pro"
+
+    # 配额
+    free_daily_messages: int = 50
+    free_daily_images: int = 3
+    premium_daily_messages: int = 500
+    premium_daily_images: int = 50
+
+    model_config = {"env_file": "../.env", "env_file_encoding": "utf-8", "extra": "ignore"}
+
+
+settings = Settings()
+
+DEFAULT_SECRET_KEY = "dev-secret-change-in-production"
+
+
+def is_serverless() -> bool:
+    """是否运行在 Vercel 等 Serverless 平台（只读文件系统、实例随时回收）"""
+    import os
+    return bool(os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"))
